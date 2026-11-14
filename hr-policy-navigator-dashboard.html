@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HR Policy Navigator — Architecture Flowchart & Analytics Dashboard</title>
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --bg-card: #131b2e;
+      --bg-card-hover: #1a2540;
+      --bg-panel: #0f1626;
+      --border: #23304d;
+      --border-highlight: #3b82f6;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-purple: #8b5cf6;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --gitlab-orange: #fc6d26;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    .top-header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 2.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+
+    .header-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .brand-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--gitlab-orange), var(--accent-purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(252, 109, 38, 0.35);
+    }
+
+    .brand-title h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .badge-live {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      font-weight: 600;
+    }
+
+    .brand-subtitle {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    /* Navigation Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 0.5rem;
+      background: var(--bg-panel);
+      padding: 0.35rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .nav-tab {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.55rem 1rem;
+      border-radius: 7px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .nav-tab:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .nav-tab.active {
+      background: var(--accent-blue);
+      color: #ffffff;
+      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 2rem 2.5rem 4rem;
+    }
+
+    /* KPI Strip */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem 1.4rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-highlight);
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+    }
+
+    .kpi-blue::before { background: var(--accent-blue); }
+    .kpi-cyan::before { background: var(--accent-cyan); }
+    .kpi-purple::before { background: var(--accent-purple); }
+    .kpi-emerald::before { background: var(--accent-emerald); }
+    .kpi-amber::before { background: var(--accent-amber); }
+    .kpi-rose::before { background: var(--accent-rose); }
+
+    .kpi-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .kpi-value {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+    }
+
+    .kpi-meta {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+    }
+
+    /* Tab Content Views */
+    .tab-view {
+      display: none;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .tab-view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Section Headers */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Interactive Flowchart Canvas */
+    .flowchart-wrapper {
+      background: radial-gradient(circle at center, #151f38 0%, #0d1322 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      position: relative;
+    }
+
+    .pipeline-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    .flow-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: stretch;
+      gap: 1.25rem;
+      width: 100%;
+    }
+
+    .flow-node {
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 1.2rem 1.35rem;
+      min-width: 220px;
+      max-width: 285px;
+      flex: 1;
+      cursor: pointer;
+      transition: all 0.22s ease;
+      position: relative;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .flow-node:hover, .flow-node.selected {
+      border-color: var(--accent-cyan);
+      background: var(--bg-card-hover);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px rgba(6, 182, 212, 0.2);
+    }
+
+    .flow-node.node-orange { border-top: 4px solid var(--gitlab-orange); }
+    .flow-node.node-blue { border-top: 4px solid var(--accent-blue); }
+    .flow-node.node-purple { border-top: 4px solid var(--accent-purple); }
+    .flow-node.node-emerald { border-top: 4px solid var(--accent-emerald); }
+    .flow-node.node-amber { border-top: 4px solid var(--accent-amber); }
+    .flow-node.node-rose { border-top: 4px solid var(--accent-rose); }
+
+    .node-step {
+      font-size: 0.68rem;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-cyan);
+      margin-bottom: 0.35rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .node-title {
+      font-size: 0.98rem;
+      font-weight: 700;
+      margin-bottom: 0.45rem;
+      color: #fff;
+    }
+
+    .node-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .node-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .pill {
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #cbd5e1;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .flow-arrow-down {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--accent-cyan);
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      gap: 0.2rem;
+    }
+
+    .arrow-line {
+      width: 2px;
+      height: 24px;
+      background: linear-gradient(to bottom, var(--accent-blue), var(--accent-cyan));
+    }
+
+    /* Node Inspector Panel */
+    .inspector-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-highlight);
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 960px) {
+      .inspector-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .code-box {
+      background: #070a12;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: #e2e8f0;
+      overflow-x: auto;
+      white-space: pre;
+      line-height: 1.55;
+    }
+
+    /* Decision Tree / Policy Flowchart */
+    .decision-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 960px) {
+      .decision-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .policy-selector {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .policy-btn {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 0.9rem 1rem;
+      border-radius: 10px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .policy-btn:hover, .policy-btn.active {
+      border-color: var(--accent-blue);
+      background: rgba(59, 130, 246, 0.12);
+    }
+
+    .policy-btn-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 0.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .policy-btn-sub {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .decision-tree-canvas {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.75rem;
+    }
+
+    .tree-step {
+      border-left: 3px solid var(--accent-blue);
+      padding-left: 1.25rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    .tree-step::before {
+      content: '';
+      position: absolute;
+      left: -8px;
+      top: 4px;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      border: 2px solid var(--bg-card);
+    }
+
+    .tree-q {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.6rem;
+    }
+
+    .tree-branches {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.85rem;
+    }
+
+    .branch-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+    }
+
+    .branch-card.approved {
+      border-left: 4px solid var(--accent-emerald);
+    }
+
+    .branch-card.rejected {
+      border-left: 4px solid var(--accent-rose);
+    }
+
+    .branch-card.conditional {
+      border-left: 4px solid var(--accent-amber);
+    }
+
+    .branch-status {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.3rem;
+    }
+
+    .approved .branch-status { color: var(--accent-emerald); }
+    .rejected .branch-status { color: var(--accent-rose); }
+    .conditional .branch-status { color: var(--accent-amber); }
+
+    /* Topic Modeling Charts */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 960px) {
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+    }
+
+    .topic-bar-row {
+      margin-bottom: 1.15rem;
+    }
+
+    .topic-bar-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .topic-bar-name {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .topic-bar-stats {
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+      font-weight: 700;
+    }
+
+    .topic-bar-track {
+      width: 100%;
+      height: 14px;
+      background: var(--bg-panel);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .topic-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.6s ease;
+    }
+
+    .topic-terms {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+      font-family: var(--font-mono);
+    }
+
+    /* Table & Filters */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      align-items: center;
+    }
+
+    .search-input, .select-input {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 0.6rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 240px;
+    }
+
+    .search-input:focus, .select-input:focus {
+      border-color: var(--accent-blue);
+    }
+
+    .data-table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      max-height: 440px;
+      overflow-y: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+
+    th {
+      background: #0d1424;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-align: left;
+      padding: 0.85rem 1rem;
+      position: sticky;
+      top: 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(35, 48, 77, 0.5);
+      color: var(--text-main);
+    }
+
+    tr:hover td {
+      background: rgba(59, 130, 246, 0.06);
+    }
+
+    .topic-badge {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+    }
+
+    .t-1 { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .t-2 { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .t-3 { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .t-4 { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); }
+    .t-5 { background: rgba(252, 109, 38, 0.15); color: #fb923c; border: 1px solid rgba(252, 109, 38, 0.3); }
+
+    /* Formula Box */
+    .formula-card {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(139, 92, 246, 0.12));
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .formula-math {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      color: #fff;
+      background: #070a12;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    /* Failure Mode Cards */
+    .strategy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1.25rem;
+    }
+
+    .strategy-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--accent-rose);
+      border-radius: 14px;
+      padding: 1.35rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .failure-tag {
+      display: inline-block;
+      background: rgba(244, 63, 94, 0.15);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="top-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon">HR</div>
+        <div class="brand-title">
+          <h1>HR Policy Navigator <span class="badge-live">GitLab Handbook Corpus</span></h1>
+          <div class="brand-subtitle">Interactive Architecture Flowchart, Policy Decision Tree, NMF Topic Modeling &amp; LLM Evaluation Dashboard</div>
+        </div>
+      </div>
+
+      <nav class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('pipeline')">1. System Flowchart</button>
+        <button class="nav-tab" onclick="switchTab('policy-tree')">2. Policy Decision Flowchart</button>
+        <button class="nav-tab" onclick="switchTab('topics')">3. NMF Topic Explorer (502 Docs)</button>
+        <button class="nav-tab" onclick="switchTab('evaluation')">4. LLM Evaluation &amp; Prompt Lab</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container">
+
+    <!-- Key Metrics Strip -->
+    <section class="kpi-grid">
+      <div class="kpi-card kpi-blue">
+        <div class="kpi-label">Source Handbook PDF</div>
+        <div class="kpi-value">1,338</div>
+        <div class="kpi-meta">Pages extracted via <code>pypdf.PdfReader</code></div>
+      </div>
+      <div class="kpi-card kpi-cyan">
+        <div class="kpi-label">Segmented Corpus</div>
+        <div class="kpi-value">502</div>
+        <div class="kpi-meta">Chunks via <code>np.array_split</code> (FINAL.zip)</div>
+      </div>
+      <div class="kpi-card kpi-purple">
+        <div class="kpi-label">NMF Latent Topics</div>
+        <div class="kpi-value">5</div>
+        <div class="kpi-meta">TF-IDF + NMF (<code>random_state=42</code>)</div>
+      </div>
+      <div class="kpi-card kpi-amber">
+        <div class="kpi-label">Evaluation Benchmark</div>
+        <div class="kpi-value">80 Qs</div>
+        <div class="kpi-meta"><code>gitlab_eval_questions.json</code></div>
+      </div>
+      <div class="kpi-card kpi-emerald">
+        <div class="kpi-label">Primary LLM Target</div>
+        <div class="kpi-value">Qwen3-8B</div>
+        <div class="kpi-meta">Baseline Overlap Accuracy: <strong>11.08%</strong></div>
+      </div>
+      <div class="kpi-card kpi-rose">
+        <div class="kpi-label">Prompt Diagnostics</div>
+        <div class="kpi-value">3 Modes</div>
+        <div class="kpi-meta">Tested on <code>tiny-llama-1b-mock</code></div>
+      </div>
+    </section>
+
+    <!-- TAB 1: SYSTEM ARCHITECTURE FLOWCHART -->
+    <section id="tab-pipeline" class="tab-view active">
+      <div class="section-header">
+        <div>
+          <div class="section-title">End-to-End HR Policy Navigator Pipeline Flowchart</div>
+          <div class="section-subtitle">Click any workflow node below to inspect the underlying Python execution, data structures, and notebook outputs</div>
+        </div>
+      </div>
+
+      <div class="flowchart-wrapper">
+        <div class="pipeline-flow">
+
+          <!-- Row 1: Ingestion & Chunking -->
+          <div class="flow-row">
+            <div class="flow-node node-orange selected" onclick="selectPipelineNode(0)" id="pnode-0">
+              <div class="node-step"><span>Stage 01</span><span>Cell [13]</span></div>
+              <div class="node-title">PDF Corpus Ingestion</div>
+              <div class="node-desc">Loads <code>gitlab_hr_handbook.pdf</code> and extracts raw text strings across all handbook pages.</div>
+              <div class="node-pills">
+                <span class="pill">pypdf.PdfReader</span>
+                <span class="pill">1,338 Pages</span>
+              </div>
+            </div>
+
+            <div class="flow-node node-blue" onclick="selectPipelineNode(1)" id="pnode-1">
+              <div class="node-step"><span>Stage 02</span><span>Cell [15-16]</span></div>
+              <div class="node-title">Document Segmentation</div>
+              <div class="node-desc">Partitions 1,338 pages into 502 uniform chunks and assigns unique IDs (<code>doc_001</code>–<code>doc_502</code>).</div>
+              <div class="node-pills">
+                <span class="pill">np.array_split</span>
+                <span class="pill">502 Docs</span>
+                <span class="pill">~3 pgs/doc</span>
+              </div>
+            </div>
+
+            <div class="flow-node node-cyan" onclick="selectPipelineNode(2)" id="pnode-2">
+              <div class="node-step"><span>Stage 03</span><span>Cell [19]</span></div>
+              <div class="node-title">Corpus Export &amp; Archive</div>
+              <div class="node-desc">Writes 502 standalone UTF-8 <code>.txt</code> files to <code>/content/FINAL/</code> and packages <code>FINAL.zip</code>.</div>
+              <div class="node-pills">
+                <span class="pill">shutil.make_archive</span>
+                <span class="pill">1.16 MB ZIP</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flow-arrow-down">
+            <div class="arrow-line"></div>
+            <span>▼ Feature Extraction &amp; Unsupervised Topic Discovery ▼</span>
+          </div>
+
+          <!-- Row 2: Topic Modeling & Classification -->
+          <div class="flow-row">
+            <div class="flow-node node-purple" onclick="selectPipelineNode(3)" id="pnode-3">
+              <div class="node-step"><span>Stage 04</span><span>Cell [13]</span></div>
+              <div class="node-title">TF-IDF Vectorization</div>
+              <div class="node-desc">Builds document-term matrix filtering English stopwords with <code>max_df=0.95</code>, <code>min_df=1</code>.</div>
+              <div class="node-pills">
+                <span class="pill">TfidfVectorizer</span>
+                <span class="pill">Scikit-Learn</span>
+              </div>
+            </div>
+
+            <div class="flow-node node-purple" onclick="selectPipelineNode(4)" id="pnode-4">
+              <div class="node-step"><span>Stage 05</span><span>Cell [17-18]</span></div>
+              <div class="node-title">NMF Topic Decomposition</div>
+              <div class="node-desc">Extracts 5 latent HR domains and maps each of the 502 documents to its dominant topic + confidence score.</div>
+              <div class="node-pills">
+                <span class="pill">NMF(n_components=5)</span>
+                <span class="pill">argmax()</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flow-arrow-down">
+            <div class="arrow-line"></div>
+            <span>▼ LLM Policy QA Evaluation &amp; Prompt Strategy Stress-Testing ▼</span>
+          </div>
+
+          <!-- Row 3: Evaluation & Prompting -->
+          <div class="flow-row">
+            <div class="flow-node node-emerald" onclick="selectPipelineNode(5)" id="pnode-5">
+              <div class="node-step"><span>Stage 06</span><span>Cell [20-23]</span></div>
+              <div class="node-title">Qwen/Qwen3-8B Benchmark</div>
+              <div class="node-desc">Loads 80 ground-truth QA pairs from <code>gitlab_eval_questions.json</code> and queries model endpoint.</div>
+              <div class="node-pills">
+                <span class="pill">Qwen/Qwen3-8B</span>
+                <span class="pill">80 QA Pairs</span>
+              </div>
+            </div>
+
+            <div class="flow-node node-amber" onclick="selectPipelineNode(6)" id="pnode-6">
+              <div class="node-step"><span>Stage 07</span><span>Cell [21, 27]</span></div>
+              <div class="node-title">Token Overlap Scoring</div>
+              <div class="node-desc">Computes token-level precision/overlap against <code>gold_answer</code> references. Baseline: <strong>11.08%</strong>.</div>
+              <div class="node-pills">
+                <span class="pill">SS.png Formula</span>
+                <span class="pill">11.08% Acc</span>
+              </div>
+            </div>
+
+            <div class="flow-node node-rose" onclick="selectPipelineNode(7)" id="pnode-7">
+              <div class="node-step"><span>Stage 08</span><span>Cell [28]</span></div>
+              <div class="node-title">Small-LLM Failure Analysis</div>
+              <div class="node-desc">Executes <code>prompt_strategies.py</code> on <code>tiny-llama-1b-mock</code> across Few-Shot, CoT &amp; Decomposition.</div>
+              <div class="node-pills">
+                <span class="pill">Overfitting</span>
+                <span class="pill">CoT Hallucination</span>
+                <span class="pill">Attention Decay</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Dynamic Inspector -->
+        <div class="inspector-panel" id="node-inspector">
+          <div>
+            <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--accent-cyan); font-weight:700; margin-bottom:0.3rem;" id="insp-stage">STAGE 01 • CELL [13]</div>
+            <h3 style="font-size:1.2rem; margin-bottom:0.6rem;" id="insp-title">PDF Corpus Ingestion (gitlab_hr_handbook.pdf)</h3>
+            <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:1rem;" id="insp-desc">
+              The pipeline begins by reading the 1,338-page GitLab HR / People Snapshot Handbook PDF using pypdf. Each page's text is extracted sequentially into the full_text list before vectorization and document partitioning.
+            </p>
+            <div style="background:var(--bg-panel); border:1px solid var(--border); border-radius:10px; padding:0.9rem; font-size:0.82rem;" id="insp-output">
+              <strong style="color:var(--accent-emerald);">Execution Output:</strong><br/>
+              <code>Total Pages in Document: 1338</code><br/>
+              <code>Topic #1: team, member, members, data, manager</code><br/>
+              <code>Topic #2: leave, days, parental, weeks, sick</code><br/>
+              <code>Topic #3: page, edit, view, contribute, source</code><br/>
+              <code>Topic #4: candidate, interview, contract, ces, greenhouse</code><br/>
+              <code>Topic #5: customer, onboarding, learning, sales, program</code>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.4rem; font-family:var(--font-mono);">Python Implementation Snippet:</div>
+            <div class="code-box" id="insp-code">reader = PdfReader("/content/gitlab_hr_handbook.pdf")
+num_pages = len(reader.pages)
+full_text = [page.extract_text() for page in reader.pages if page.extract_text()]
+
+vectorizer = TfidfVectorizer(max_df=0.95, min_df=1, stop_words='english')
+tfidf = vectorizer.fit_transform(full_text)
+nmf = NMF(n_components=5, random_state=42).fit(tfidf)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: HR POLICY & EXPENSE DECISION FLOWCHART -->
+    <section id="tab-policy-tree" class="tab-view">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Interactive HR Policy &amp; Expense Decision Flowchart</div>
+          <div class="section-subtitle">Rule-based decision trees derived directly from the GitLab Handbook corpus &amp; gold evaluation answers</div>
+        </div>
+      </div>
+
+      <div class="decision-grid">
+        <!-- Left Selector -->
+        <div class="policy-selector">
+          <button class="policy-btn active" onclick="selectPolicyFlow(0)" id="pbtn-0">
+            <div class="policy-btn-title"><span>💻 Home Office Stipend &amp; Refresh</span><span>→</span></div>
+            <div class="policy-btn-sub">New Hire ($1,500) vs. Annual Refresh ($500) &amp; Exclusions (Q1–Q3)</div>
+          </button>
+
+          <button class="policy-btn" onclick="selectPolicyFlow(1)" id="pbtn-1">
+            <div class="policy-btn-title"><span>🍽️ Travel &amp; Team Event Meals</span><span>→</span></div>
+            <div class="policy-btn-sub">Daily Travel Reimbursement &amp; $80/person Team Limit (Q4–Q5)</div>
+          </button>
+
+          <button class="policy-btn" onclick="selectPolicyFlow(2)" id="pbtn-2">
+            <div class="policy-btn-title"><span>🌿 Parental Leave &amp; Time Away</span><span>→</span></div>
+            <div class="policy-btn-sub">Topic #2 (67 Docs) • Leave of Absence &amp; Parental Policy</div>
+          </button>
+
+          <button class="policy-btn" onclick="selectPolicyFlow(3)" id="pbtn-3">
+            <div class="policy-btn-title"><span>🤝 Recruiting, Onboarding &amp; DRIs</span><span>→</span></div>
+            <div class="policy-btn-sub">Topics #1, #4, #5 • Greenhouse CES, Remote Onboarding &amp; Collaboration</div>
+          </button>
+        </div>
+
+        <!-- Right Interactive Flowchart -->
+        <div class="decision-tree-canvas" id="policy-flow-canvas">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: NMF TOPIC MODELING & 502-DOCUMENT EXPLORER -->
+    <section id="tab-topics" class="tab-view">
+      <div class="section-header">
+        <div>
+          <div class="section-title">NMF Topic Distribution Across 502 Segmented Documents</div>
+          <div class="section-subtitle">Unsupervised decomposition of 1,338 handbook pages into 5 core People &amp; HR themes</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <!-- Topic Distribution Bars -->
+        <div class="panel-card">
+          <h3 style="font-size:1rem; margin-bottom:1.2rem;">Dominant Topic Frequency (502 Documents Total)</h3>
+
+          <div class="topic-bar-row">
+            <div class="topic-bar-header">
+              <span class="topic-bar-name">Topic #5: Customer Success &amp; Sales</span>
+              <span class="topic-bar-stats">224 docs (44.62%)</span>
+            </div>
+            <div class="topic-bar-track">
+              <div class="topic-bar-fill" style="width:44.62%; background: linear-gradient(90deg, #fc6d26, #fb923c);"></div>
+            </div>
+            <div class="topic-terms">Top NMF Keywords: customer, onboarding, learning, sales, program</div>
+          </div>
+
+          <div class="topic-bar-row">
+            <div class="topic-bar-header">
+              <span class="topic-bar-name">Topic #1: Team &amp; Management</span>
+              <span class="topic-bar-stats">145 docs (28.88%)</span>
+            </div>
+            <div class="topic-bar-track">
+              <div class="topic-bar-fill" style="width:28.88%; background: linear-gradient(90deg, #2563eb, #60a5fa);"></div>
+            </div>
+            <div class="topic-terms">Top NMF Keywords: team, member, members, data, manager</div>
+          </div>
+
+          <div class="topic-bar-row">
+            <div class="topic-bar-header">
+              <span class="topic-bar-name">Topic #2: Leave &amp; Time Off</span>
+              <span class="topic-bar-stats">67 docs (13.35%)</span>
+            </div>
+            <div class="topic-bar-track">
+              <div class="topic-bar-fill" style="width:13.35%; background: linear-gradient(90deg, #059669, #34d399);"></div>
+            </div>
+            <div class="topic-terms">Top NMF Keywords: leave, days, parental, weeks, sick</div>
+          </div>
+
+          <div class="topic-bar-row">
+            <div class="topic-bar-header">
+              <span class="topic-bar-name">Topic #4: Recruiting &amp; Interviewing</span>
+              <span class="topic-bar-stats">53 docs (10.56%)</span>
+            </div>
+            <div class="topic-bar-track">
+              <div class="topic-bar-fill" style="width:10.56%; background: linear-gradient(90deg, #7c3aed, #a78bfa);"></div>
+            </div>
+            <div class="topic-terms">Top NMF Keywords: candidate, interview, contract, ces, greenhouse</div>
+          </div>
+
+          <div class="topic-bar-row" style="margin-bottom:0;">
+            <div class="topic-bar-header">
+              <span class="topic-bar-name">Topic #3: Handbook &amp; Contributions</span>
+              <span class="topic-bar-stats">13 docs (2.59%)</span>
+            </div>
+            <div class="topic-bar-track">
+              <div class="topic-bar-fill" style="width:2.59%; background: linear-gradient(90deg, #d97706, #fbbf24);"></div>
+            </div>
+            <div class="topic-terms">Top NMF Keywords: page, edit, view, contribute, source</div>
+          </div>
+        </div>
+
+        <!-- Confidence Score Summary -->
+        <div class="panel-card" style="display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            <h3 style="font-size:1rem; margin-bottom:1rem;">NMF Confidence Score Diagnostics</h3>
+            <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:1.25rem;">
+              Each document <code>doc_001</code>–<code>doc_502</code> is transformed via <code>nmf.transform(doc_tfidf)</code> and assigned to <code>dist.argmax() + 1</code>.
+            </p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; margin-bottom:1.25rem;">
+              <div style="background:var(--bg-panel); padding:0.9rem; border-radius:10px; border:1px solid var(--border);">
+                <div style="font-size:0.72rem; color:var(--text-muted);">MAX CONFIDENCE</div>
+                <div style="font-size:1.35rem; font-weight:800; font-family:var(--font-mono); color:var(--accent-emerald);">0.4221</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Record: <code>doc_174</code> (Topic #4)</div>
+              </div>
+              <div style="background:var(--bg-panel); padding:0.9rem; border-radius:10px; border:1px solid var(--border);">
+                <div style="font-size:0.72rem; color:var(--text-muted);">MIN CONFIDENCE</div>
+                <div style="font-size:1.35rem; font-weight:800; font-family:var(--font-mono); color:var(--accent-rose);">0.0065</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Record: <code>doc_141</code> (Topic #1)</div>
+              </div>
+              <div style="background:var(--bg-panel); padding:0.9rem; border-radius:10px; border:1px solid var(--border);">
+                <div style="font-size:0.72rem; color:var(--text-muted);">STD DEVIATION</div>
+                <div style="font-size:1.35rem; font-weight:800; font-family:var(--font-mono); color:var(--accent-cyan);">0.0731</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">436 unique score values</div>
+              </div>
+              <div style="background:var(--bg-panel); padding:0.9rem; border-radius:10px; border:1px solid var(--border);">
+                <div style="font-size:0.72rem; color:var(--text-muted);">DOC_001 LENGTH</div>
+                <div style="font-size:1.35rem; font-weight:800; font-family:var(--font-mono); color:var(--accent-amber);">4,182</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Characters (3 combined pages)</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.25); padding:0.9rem; border-radius:10px; font-size:0.8rem; color:#cbd5e1;">
+            <strong>Insight:</strong> Topic #5 (Customer Success &amp; Sales Enablement/Onboarding) and Topic #1 (Team &amp; Management) account for <strong>73.50%</strong> (369/502) of all handbook chunks, reflecting the extensive role-based onboarding and management chapters in the GitLab People snapshot.
+          </div>
+        </div>
+      </div>
+
+      <!-- Searchable Document & Policy Index Explorer -->
+      <div class="panel-card">
+        <div class="section-header" style="margin-bottom:1rem;">
+          <div>
+            <div class="section-title">Interactive Document &amp; Handbook Policy Explorer</div>
+            <div class="section-subtitle">Search sample segmented documents (<code>doc_001</code>–<code>doc_502</code>), NMF topic assignments, and extracted handbook sections</div>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <input type="text" id="docSearchInput" class="search-input" placeholder="Search by doc_id (e.g. doc_001, doc_174), topic keyword, or policy title..." oninput="filterDocs()" />
+          <select id="topicFilterSelect" class="select-input" onchange="filterDocs()">
+            <option value="ALL">All 5 Topics</option>
+            <option value="1">Topic #1: Team &amp; Management</option>
+            <option value="2">Topic #2: Leave &amp; Time Off</option>
+            <option value="3">Topic #3: Handbook &amp; Contributions</option>
+            <option value="4">Topic #4: Recruiting &amp; Interviewing</option>
+            <option value="5">Topic #5: Customer Success &amp; Sales</option>
+          </select>
+        </div>
+
+        <div class="data-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Doc ID</th>
+                <th>Dominant Topic</th>
+                <th>NMF Confidence</th>
+                <th>Representative Handbook Sections / Content Preview</th>
+              </tr>
+            </thead>
+            <tbody id="docTableBody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: LLM EVALUATION & PROMPT STRATEGY LAB -->
+    <section id="tab-evaluation" class="tab-view">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Baseline Model Evaluation (Qwen/Qwen3-8B) &amp; Metric Formula</div>
+          <div class="section-subtitle">Evaluated across 80 HR policy benchmark questions in <code>/content/gitlab_eval_questions.json</code></div>
+        </div>
+      </div>
+
+      <div class="formula-card">
+        <div>
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--accent-cyan); font-weight:700; margin-bottom:0.25rem;">Evaluation Metric Formula (Extracted from SS.png)</div>
+          <div style="font-size:0.88rem; color:var(--text-muted);">
+            Measures token-level overlap between the model's generated response and the ground-truth reference answer:
+          </div>
+        </div>
+        <div class="formula-math">
+          Accuracy = |Tokens(pred) ∩ Tokens(gold)| / |Tokens(gold)| &nbsp;→&nbsp; <span style="color:var(--accent-amber); font-weight:800;">Baseline Mean: 11.08%</span>
+        </div>
+      </div>
+
+      <!-- Gold Evaluation Dataset Preview -->
+      <div class="panel-card" style="margin-bottom:2rem;">
+        <h3 style="font-size:1rem; margin-bottom:1rem;">Benchmark Evaluation Dataset Inspector (Sample Questions 1–5 of 80)</h3>
+        <div class="data-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:60px;">ID</th>
+                <th style="width:28%;">Evaluation Question (<code>query</code>)</th>
+                <th style="width:26%;">Baseline Output (<code>Qwen/Qwen3-8B</code>)</th>
+                <th>Ground-Truth Reference (<code>gold_answer</code>)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>#1</code></td>
+                <td><strong>What is the total home office stipend for a new hire?</strong></td>
+                <td><code style="color:var(--text-muted);">Simulated response for: What is the total home...</code></td>
+                <td>New hires receive a <strong>$1,500 USD</strong> (or local currency equivalent) stipend to set up their home office.</td>
+              </tr>
+              <tr>
+                <td><code>#2</code></td>
+                <td><strong>Can existing team members get an office refresh every year?</strong></td>
+                <td><code style="color:var(--text-muted);">Simulated response for: Can existing team memb...</code></td>
+                <td>Yes, existing team members receive an annual refresh stipend of <strong>$500 USD</strong> (or local currency equivalent) to purchase upgrades. This resets January 1 to December 31 and applies only to team members employed the entire previous calendar year. It excludes laptops.</td>
+              </tr>
+              <tr>
+                <td><code>#3</code></td>
+                <td><strong>Are treadmills or walking pads reimbursable under the home office stipend?</strong></td>
+                <td><code style="color:var(--text-muted);">Simulated response for: Are treadmills or walk...</code></td>
+                <td><strong>No.</strong> Non-reimbursable items include treadmills, walking pads, smart TVs, phones, watches, smart speakers, tablets, bookshelves, and Wi-Fi mesh routers.</td>
+              </tr>
+              <tr>
+                <td><code>#4</code></td>
+                <td><strong>What is the daily meal reimbursement limit for team members traveling on company business?</strong></td>
+                <td><code style="color:var(--text-muted);">Simulated response for: What is the daily meal...</code></td>
+                <td>Meals while traveling on company business are reimbursable in accordance with the Global Travel and Expense Policy daily per-diem/receipt guidelines.</td>
+              </tr>
+              <tr>
+                <td><code>#5</code></td>
+                <td><strong>What is the per-person limit for team events and meals while traveling?</strong></td>
+                <td><code style="color:var(--text-muted);">Simulated response for: What is the per-person...</code></td>
+                <td>The limit is <strong>$80 USD per person per meal</strong>. The most senior team member present should pay and expense the total bill if separate receipts aren't practical.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Prompt Strategies Failure Mode Lab -->
+      <div class="section-header">
+        <div>
+          <div class="section-title">Small-Model Prompting Strategy Failure Modes (<code>prompt_strategies.py</code>)</div>
+          <div class="section-subtitle">Diagnostic stress-test run on <code>tiny-llama-1b-mock</code> (Cell [28])</div>
+        </div>
+      </div>
+
+      <div class="strategy-grid">
+        <!-- Strategy 1 -->
+        <div class="strategy-card">
+          <div>
+            <span class="failure-tag">Failure Mode 1: Example Overfitting</span>
+            <h4 style="font-size:1.05rem; margin-bottom:0.5rem;">Strategy 1: Few-Shot Structured Output</h4>
+            <p style="font-size:0.83rem; color:var(--text-muted); margin-bottom:1rem;">
+              The small model ignores the actual user query input and blindly copies the structure and content of the last provided few-shot example.
+            </p>
+          </div>
+          <div class="code-box" style="margin-top:0.5rem;">--- Testing Strategy 1 ---
+Model Output:
+Failed to parse instruction
+
+Diagnostic:
+Blindly copies last example structure/content.</div>
+        </div>
+
+        <!-- Strategy 2 -->
+        <div class="strategy-card" style="border-top-color: var(--accent-amber);">
+          <div>
+            <span class="failure-tag" style="background:rgba(245,158,11,0.15); color:#fbbf24; border-color:rgba(245,158,11,0.35);">Failure Mode 2: Logical Hallucination</span>
+            <h4 style="font-size:1.05rem; margin-bottom:0.5rem;">Strategy 2: Chain of Thought (CoT)</h4>
+            <p style="font-size:0.83rem; color:var(--text-muted); margin-bottom:1rem;">
+              Adopts the step-by-step reasoning persona with high confidence but fails basic arithmetic steps (e.g., computing <code>8 - 2 = 5</code> and <code>5 * 2 = 12</code>).
+            </p>
+          </div>
+          <div class="code-box" style="margin-top:0.5rem;">Let's think step-by-step.
+1. We have 5 apples and buy 3 more. 5 + 3 = 8.
+2. Then we give away 2. 8 - 2 = 5.  [ERROR]
+3. We multiply by 2. 5 * 2 = 12.    [ERROR]
+The final answer is 12.</div>
+        </div>
+
+        <!-- Strategy 3 -->
+        <div class="strategy-card" style="border-top-color: var(--accent-purple);">
+          <div>
+            <span class="failure-tag" style="background:rgba(139,92,246,0.15); color:#a78bfa; border-color:rgba(139,92,246,0.35);">Failure Mode 3: Attention Decay</span>
+            <h4 style="font-size:1.05rem; margin-bottom:0.5rem;">Strategy 3: Decomposition Prompting</h4>
+            <p style="font-size:0.83rem; color:var(--text-muted); margin-bottom:1rem;">
+              Exhibits premature stopping: successfully resolves Sub-task 1 and Sub-task 2, but experiences attention decay and drops the remaining required sub-tasks.
+            </p>
+          </div>
+          <div class="code-box" style="margin-top:0.5rem;">Sub-task 1 Answer: The capital of France is Paris.
+Sub-task 2 Answer: Paris is known for the Eiffel Tower.
+[Sub-tasks 3+ dropped due to Attention Decay]</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Tab Switching Logic
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    // Pipeline Flowchart Node Data
+    const pipelineNodes = [
+      {
+        stage: "STAGE 01 • CELL [13]",
+        title: "PDF Corpus Ingestion (gitlab_hr_handbook.pdf)",
+        desc: "Loads the 1,338-page GitLab HR / People Snapshot Handbook PDF using pypdf.PdfReader and extracts full text across every page.",
+        output: "Total Pages in Document: 1338<br/>Extracted 1,338 page strings into <code>full_text</code> list.",
+        code: `reader = PdfReader("/content/gitlab_hr_handbook.pdf")
+num_pages = len(reader.pages)
+print(f"Total Pages in Document: {num_pages}")
+
+full_text = []
+for page in reader.pages:
+    text = page.extract_text()
+    if text:
+        full_text.append(text)`
+      },
+      {
+        stage: "STAGE 02 • CELL [15-16]",
+        title: "Document Segmentation (1,338 Pages → 502 Documents)",
+        desc: "Uses numpy.array_split to partition the 1,338 pages into exactly 502 multi-page documents and assigns sequential IDs (doc_001 to doc_502).",
+        output: "Successfully converted 1338 pages into 502 separate documents.<br/>The first document contains 3 combined pages and has a length of 4182 characters.<br/>Assigned unique IDs to 502 documents.",
+        code: `pages_split = np.array_split(full_text, 502)
+documents = ["\n\n".join(chunk) for chunk in pages_split]
+
+identified_documents = [
+    {"doc_id": f"doc_{i+1:03d}", "content": doc}
+    for i, doc in enumerate(documents)
+]`
+      },
+      {
+        stage: "STAGE 03 • CELL [19]",
+        title: "Corpus Directory Export & ZIP Packaging",
+        desc: "Writes all 502 segmented documents as individual UTF-8 text files into /content/FINAL/ and compresses them into FINAL.zip (1,163,268 bytes).",
+        output: "Successfully wrote 502 files into '/content/FINAL/'.<br/>Created 'FINAL.zip' containing all the documents (1,163,268 bytes).",
+        code: `output_dir = "/content/FINAL"
+os.makedirs(output_dir, exist_ok=True)
+for doc in identified_documents:
+    file_path = os.path.join(output_dir, f"{doc['doc_id']}.txt")
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(doc["content"])
+shutil.make_archive("/content/FINAL", 'zip', output_dir)`
+      },
+      {
+        stage: "STAGE 04 • CELL [13, 17]",
+        title: "TF-IDF Vectorization",
+        desc: "Fits a Scikit-Learn TfidfVectorizer (max_df=0.95, min_df=1, stop_words='english') on the handbook pages and transforms the 502 combined documents.",
+        output: "Fitted TF-IDF vocabulary and transformed 502 documents into sparse document-term matrix <code>doc_tfidf</code>.",
+        code: `vectorizer = TfidfVectorizer(max_df=0.95, min_df=1, stop_words='english')
+tfidf = vectorizer.fit_transform(full_text)
+
+doc_texts = [d['content'] for d in identified_documents]
+doc_tfidf = vectorizer.transform(doc_texts)`
+      },
+      {
+        stage: "STAGE 05 • CELL [17-18]",
+        title: "Non-Negative Matrix Factorization (NMF) Topic Assignment",
+        desc: "Applies NMF(n_components=5, random_state=42) to classify each of the 502 documents into its highest-scoring HR topic.",
+        output: "Topic #5 (Customer Success & Sales): 224 docs (44.62%)<br/>Topic #1 (Team & Management): 145 docs (28.88%)<br/>Topic #2 (Leave & Time Off): 67 docs (13.35%)<br/>Topic #4 (Recruiting & Interviewing): 53 docs (10.56%)<br/>Topic #3 (Handbook & Contributions): 13 docs (2.59%)",
+        code: `doc_topic_distributions = nmf.transform(doc_tfidf)
+for idx, dist in enumerate(doc_topic_distributions):
+    dominant_topic_id = dist.argmax()
+    doc_topics.append({
+        "doc_id": identified_documents[idx]["doc_id"],
+        "dominant_topic_id": dominant_topic_id + 1,
+        "dominant_topic_label": topic_labels[dominant_topic_id],
+        "confidence_score": round(dist[dominant_topic_id], 4)
+    })`
+      },
+      {
+        stage: "STAGE 06 • CELL [20, 23]",
+        title: "Qwen/Qwen3-8B Evaluation Harness",
+        desc: "Retrieves secret key 'SK' from Colab userdata, loads 80 benchmark items from /content/gitlab_eval_questions.json, and generates responses.",
+        output: "API Key 'SK' successfully retrieved.<br/>Found evaluation dataset at /content/gitlab_eval_questions.json.<br/>Loaded 80 evaluation items.",
+        code: `MODEL_NAME = "Qwen/Qwen3-8B"
+API_KEY = userdata.get('SK')
+with open("/content/gitlab_eval_questions.json", 'r') as f:
+    eval_data = json.load(f)
+
+for item in eval_data:
+    generated = query_model(MODEL_NAME, API_KEY, item['query'])`
+      },
+      {
+        stage: "STAGE 07 • CELL [21, 27]",
+        title: "Token Overlap Accuracy Calculation",
+        desc: "Evaluates generated answers against reference gold_answer strings using the token overlap accuracy formula inspected in SS.png.",
+        output: "Baseline Accuracy: <strong>11.08%</strong> across the 80 evaluation questions.",
+        code: `# Calculate baseline accuracy in percentage terms
+baseline_accuracy_pct = df_results['token_overlap_accuracy'].mean() * 100
+print(f"Baseline Accuracy: {baseline_accuracy_pct:.2f}%")
+# Output: Baseline Accuracy: 11.08%`
+      },
+      {
+        stage: "STAGE 08 • CELL [28]",
+        title: "Prompting Strategy Failure Mode Diagnostics",
+        desc: "Runs /content/prompt_strategies.py on tiny-llama-1b-mock to isolate failure modes in Few-Shot, Chain-of-Thought, and Task Decomposition.",
+        output: "1. Few-Shot → Example Overfitting<br/>2. Chain of Thought → Logical Hallucination / Arithmetic Failure<br/>3. Decomposition → Attention Decay / Premature Stopping",
+        code: `%run /content/prompt_strategies.py
+# Evaluates tiny-llama-1b-mock across:
+# - Strategy 1: Few-Shot Structured Output
+# - Strategy 2: Chain of Thought
+# - Strategy 3: Decomposition Prompting`
+      }
+    ];
+
+    function selectPipelineNode(index) {
+      document.querySelectorAll('.flow-node').forEach(el => el.classList.remove('selected'));
+      document.getElementById('pnode-' + index).classList.add('selected');
+      const node = pipelineNodes[index];
+      document.getElementById('insp-stage').innerText = node.stage;
+      document.getElementById('insp-title').innerText = node.title;
+      document.getElementById('insp-desc').innerText = node.desc;
+      document.getElementById('insp-output').innerHTML = `<strong style="color:var(--accent-emerald);">Execution Output:</strong><br/><code>${node.output}</code>`;
+      document.getElementById('insp-code').innerText = node.code;
+    }
+
+    // Policy Decision Flowchart Data
+    const policyFlows = [
+      {
+        title: "Home Office Stipend & Annual Refresh Decision Flowchart",
+        source: "GitLab Handbook • Global Travel & Expense Policy (005) / Eval Questions #1, #2, #3",
+        steps: [
+          {
+            q: "Step 1: What is the team member's tenure status?",
+            branches: [
+              {
+                type: "approved",
+                status: "New Hire Eligibility (Q1)",
+                text: "Eligible for a one-time <strong>$1,500 USD</strong> (or local currency equivalent) Home Office Stipend upon onboarding."
+              },
+              {
+                type: "conditional",
+                status: "Existing Team Member Refresh (Q2)",
+                text: "Eligible for an annual <strong>$500 USD</strong> refresh stipend (resets Jan 1 – Dec 31) ONLY if employed the entire previous calendar year."
+              }
+            ]
+          },
+          {
+            q: "Step 2: Is the requested equipment eligible for reimbursement?",
+            branches: [
+              {
+                type: "approved",
+                status: "Reimbursable Ergonomic Office Gear",
+                text: "Monitor, ergonomic chair, standing desk, keyboard, mouse, webcam, headset, or desk lamp."
+              },
+              {
+                type: "rejected",
+                status: "Strictly Excluded Items (Q2 & Q3)",
+                text: "<strong>Not Reimbursable:</strong> Treadmills, walking pads, smart TVs, phones, watches, smart speakers, tablets, bookshelves, Wi-Fi mesh routers, and laptops."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        title: "Business Travel & Team Event Meal Reimbursement Flowchart",
+        source: "GitLab Handbook • Global Travel and Expense Policy (005) / Eval Questions #4 & #5",
+        steps: [
+          {
+            q: "Step 1: What type of meal expense is being claimed?",
+            branches: [
+              {
+                type: "approved",
+                status: "Individual Business Travel Meal (Q4)",
+                text: "Meals while traveling on official company business are reimbursable subject to standard receipt documentation."
+              },
+              {
+                type: "conditional",
+                status: "Team Event / Group Meal While Traveling (Q5)",
+                text: "Reimbursable up to a strict cap of <strong>$80 USD per person per meal</strong>."
+              }
+            ]
+          },
+          {
+            q: "Step 2: Who should submit the group meal receipt?",
+            branches: [
+              {
+                type: "approved",
+                status: "Senior Team Member Rule (Q5)",
+                text: "The <strong>most senior team member present</strong> must pay and expense the total bill if separate individual receipts are not practical."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        title: "Leave of Absence & Parental Leave Policy Navigator",
+        source: "GitLab Handbook • Leave of Absence (012), Time Off Types (047), Leave Toolkit (093) • Topic #2 (67 Docs)",
+        steps: [
+          {
+            q: "Step 1: Which leave category applies to the team member?",
+            branches: [
+              {
+                type: "approved",
+                status: "Paid Parental Leave (Eval Fallback Q1)",
+                text: "Contact <strong>People Experience</strong> or consult the Parental Leave policy page (Topic #2 top terms: <code>leave, days, parental, weeks, sick</code>)."
+              },
+              {
+                type: "conditional",
+                status: "General Time Away / PTO (045, 121)",
+                text: "Guided by GitLab's 'Time Away Philosophy' & Entity-Specific Leave Policies (US 074, UK 075, NL 072, India 055/056)."
+              }
+            ]
+          },
+          {
+            q: "Step 2: Coordination & Coverage Handover",
+            branches: [
+              {
+                type: "approved",
+                status: "Leave of Absence Toolkit (093)",
+                text: "Notify Manager & People Operations, assign Directly Responsible Individuals (DRIs - 031) for coverage, and log absence in Workday/Deel."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        title: "Recruiting, Onboarding & Remote Collaboration Flowchart",
+        source: "GitLab Handbook • Hiring (004), Onboarding (023, 094), Collaboration Hours • Topics #1, #4, #5",
+        steps: [
+          {
+            q: "Step 1: Candidate Interviewing & Screening (Topic #4: 53 Docs)",
+            branches: [
+              {
+                type: "approved",
+                status: "Candidate Experience Specialist (063)",
+                text: "Managed via <strong>Greenhouse</strong>; includes Interviewer Prep (006), Technical/Panel Interviews (069, 070), and Background Screenings (017)."
+              }
+            ]
+          },
+          {
+            q: "Step 2: All-Remote Onboarding & Role Enablement (Topic #5: 224 Docs)",
+            branches: [
+              {
+                type: "approved",
+                status: "Remote Onboarding & Buddy Assignment (094, 095)",
+                text: "Assign Onboarding Buddy & Merge Request Buddy (096), complete IT 101 (107), and enroll in Sales Quick Start (SQS - 138) or LevelUp (114)."
+              },
+              {
+                type: "conditional",
+                status: "Core Collaboration Window",
+                text: "Standard synchronous collaboration hours span <strong>11:00 AM to 4:00 PM</strong> alongside Right to Disconnect charters (051, 052)."
+              }
+            ]
+          }
+        ]
+      }
+    ];
+
+    function selectPolicyFlow(idx) {
+      document.querySelectorAll('.policy-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('pbtn-' + idx).classList.add('active');
+      const flow = policyFlows[idx];
+      let html = `
+        <div style="margin-bottom:1.25rem; border-bottom:1px solid var(--border); padding-bottom:0.85rem;">
+          <div style="font-size:0.75rem; color:var(--accent-cyan); font-family:var(--font-mono); margin-bottom:0.25rem;">${flow.source}</div>
+          <h3 style="font-size:1.15rem;">${flow.title}</h3>
+        </div>
+      `;
+      flow.steps.forEach(step => {
+        html += `<div class="tree-step"><div class="tree-q">${step.q}</div><div class="tree-branches">`;
+        step.branches.forEach(b => {
+          html += `
+            <div class="branch-card ${b.type}">
+              <div class="branch-status">${b.status}</div>
+              <div style="font-size:0.84rem; color:var(--text-main);">${b.text}</div>
+            </div>
+          `;
+        });
+        html += `</div></div>`;
+      });
+      document.getElementById('policy-flow-canvas').innerHTML = html;
+    }
+
+    // Initialize default policy flow
+    selectPolicyFlow(0);
+
+    // Sample Document Records from Notebook (Cell 16 & Cell 17)
+    const sampleDocs = [
+      { id: "doc_001", topicId: 1, topicLabel: "Team & Management", score: 0.0883, preview: "001. People Group, 002. People Policies, 003. Total Rewards, 005. Global Travel & Expense Policy, 009. Anti-Harassment, 012. Leave of Absence, 021. Benefits, 023. Onboarding (Pages 1–3, 4,182 chars)" },
+      { id: "doc_002", topicId: 5, topicLabel: "Customer Success & Sales", score: 0.2280, preview: "117. Learning Content Accessibility, 121. Time Away Philosophy, 131. All-Remote Benefits, 137. Sales & Customer Success Quick Start (SQS), 174–182. TMRG Groups, 186. Customer Onboarding (Pages 4–6)" },
+      { id: "doc_005", topicId: 1, topicLabel: "Team & Management", score: 0.1758, preview: "People Group Operations, Team Member Relations, Directly Responsible Individuals (DRI) & Management Standards" },
+      { id: "doc_013", topicId: 4, topicLabel: "Recruiting & Interviewing", score: 0.0996, preview: "Hiring & Talent Acquisition Handbook, Interviewer Prep Requirements & Candidate Screening" },
+      { id: "doc_024", topicId: 4, topicLabel: "Recruiting & Interviewing", score: 0.2598, preview: "Contracts, Background Screenings, Probation Periods, PIAA & Greenhouse Recruiting Workflows" },
+      { id: "doc_031", topicId: 1, topicLabel: "Team & Management", score: 0.1982, preview: "Directly Responsible Individuals (DRI), Competencies & 360 Feedback Guidelines" },
+      { id: "doc_032", topicId: 2, topicLabel: "Leave & Time Off", score: 0.2556, preview: "Time Off and Absence at GitLab, Paid Parental Leave, Sick Time & Entity Leave Policies" },
+      { id: "doc_043", topicId: 4, topicLabel: "Recruiting & Interviewing", score: 0.2189, preview: "Candidate Experience Specialist (CES) Responsibilities & Panel/Technical Interviews" },
+      { id: "doc_064", topicId: 5, topicLabel: "Customer Success & Sales", score: 0.1119, preview: "Customer Support & Infrastructure Onboarding, Field Enablement & Continuous Education" },
+      { id: "doc_105", topicId: 3, topicLabel: "Handbook & Contributions", score: 0.0515, preview: "Handbook Page Editing, Merge Request Buddies, View Source & Contribution Style Guide" },
+      { id: "doc_129", topicId: 2, topicLabel: "Leave & Time Off", score: 0.2233, preview: "Leave of Absence Toolkit for Team Members and Managers, Parental & Caregiver Leave" },
+      { id: "doc_141", topicId: 1, topicLabel: "Team & Management", score: 0.0065, preview: "Cross-functional Team Member Guidelines (Minimum NMF confidence score record: 0.0065)" },
+      { id: "doc_148", topicId: 2, topicLabel: "Leave & Time Off", score: 0.2745, preview: "Global Time Off Types, Statutory Leave & Regional Holiday Calendars" },
+      { id: "doc_174", topicId: 4, topicLabel: "Recruiting & Interviewing", score: 0.4221, preview: "Greenhouse Candidate Pipeline, CES Contract Stage & Interview Rubrics (Max NMF score: 0.4221)" },
+      { id: "doc_203", topicId: 2, topicLabel: "Leave & Time Off", score: 0.3452, preview: "Extended Leave, Parental Weeks Allocation & Return-to-Work Accommodations" },
+      { id: "doc_236", topicId: 2, topicLabel: "Leave & Time Off", score: 0.3666, preview: "Medical, Sick & Family Leave Documentation Standards" },
+      { id: "doc_260", topicId: 5, topicLabel: "Customer Success & Sales", score: 0.2283, preview: "Sales Quick Start (SQS) Workshop, Field Accreditation & Solutions Architects Onboarding" },
+      { id: "doc_322", topicId: 2, topicLabel: "Leave & Time Off", score: 0.3703, preview: "Regional Leave Entitlements & Time Away Administration" },
+      { id: "doc_363", topicId: 3, topicLabel: "Handbook & Contributions", score: 0.1265, preview: "Handbook-First Documentation Standards, Page Edit & Source Control Guidelines" },
+      { id: "doc_463", topicId: 5, topicLabel: "Customer Success & Sales", score: 0.2340, preview: "Customer Success Manager (CSM) Enablement, Account Engagement & Quarterly Planning" },
+      { id: "doc_483", topicId: 3, topicLabel: "Handbook & Contributions", score: 0.1557, preview: "Contributing to the GitLab People Handbook, Templates & Tools" },
+      { id: "doc_502", topicId: 5, topicLabel: "Customer Success & Sales", score: 0.1228, preview: "Final Segmented Document Chunk — Field Certification & Partner Enablement Closing Pages" }
+    ];
+
+    function renderDocs(list) {
+      const tbody = document.getElementById('docTableBody');
+      tbody.innerHTML = list.map(d => `
+        <tr>
+          <td><code style="color:var(--accent-cyan); font-weight:700;">${d.id}</code></td>
+          <td><span class="topic-badge t-${d.topicId}">Topic #${d.topicId}: ${d.topicLabel}</span></td>
+          <td><code style="font-family:var(--font-mono);">${d.score.toFixed(4)}</code></td>
+          <td style="color:var(--text-muted);">${d.preview}</td>
+        </tr>
+      `).join('');
+    }
+
+    function filterDocs() {
+      const q = document.getElementById('docSearchInput').value.toLowerCase();
+      const t = document.getElementById('topicFilterSelect').value;
+      const filtered = sampleDocs.filter(d => {
+        const matchesTopic = (t === "ALL") || (String(d.topicId) === t);
+        const matchesQuery = d.id.toLowerCase().includes(q) ||
+                             d.topicLabel.toLowerCase().includes(q) ||
+                             d.preview.toLowerCase().includes(q);
+        return matchesTopic && matchesQuery;
+      });
+      renderDocs(filtered);
+    }
+
+    // Initial table render
+    renderDocs(sampleDocs);
+  </script>
+</body>
+</html>
